@@ -1,7 +1,7 @@
 'use client'
-import React from "react";
-import { Button, TextArea, TextField } from "@radix-ui/themes";
-import {useForm} from "react-hook-form";
+import React, { useState } from "react";
+import { Button, TextArea, TextField, Callout } from "@radix-ui/themes";
+import { useForm } from "react-hook-form";
 import axios from "axios";
 import 'easymde/dist/easymde.min.css';
 import { useRouter } from "next/navigation";
@@ -12,28 +12,40 @@ interface IssueForm {
 }
 
 const NewIssuePage = () => {
-  const router =  useRouter();
+  const router = useRouter();
   const { register, handleSubmit } = useForm<IssueForm>();
+  const [error, setError] = useState('');
   return (
-    <form
-      className="max-w-xl space-y-3"
-      onSubmit={handleSubmit(async (data) => {
-        await axios.post("/api/issues", data);
-        router.push("/issues");
-      })}
-    >
-      <TextField.Root>
-        <TextField.Input
-          placeholder="Title"
-          {...register("title", { required: true })}
+    <div className="max-w-xl">
+      {error && (
+        <Callout.Root color="red" className='mb-5'>
+          <Callout.Text>{error}</Callout.Text>
+        </Callout.Root>
+      )}
+      <form
+        className="space-y-3"
+        onSubmit={handleSubmit(async (data) => {
+          try {
+            await axios.post("/api/issues", data);
+            router.push("/issues");
+          } catch (error) {
+            setError('An error occured');
+          }
+        })}
+      >
+        <TextField.Root>
+          <TextField.Input
+            placeholder="Title"
+            {...register("title")}
+          />
+        </TextField.Root>
+        <TextArea
+          placeholder="Description"
+          {...register("description")}
         />
-      </TextField.Root>
-      <TextArea
-        placeholder="Description"
-        {...register("description", { required: true })}
-      />
-      <Button>Submit New Issue</Button>
-    </form>
+        <Button>Submit New Issue</Button>
+      </form>
+    </div>
   );
 };
 
